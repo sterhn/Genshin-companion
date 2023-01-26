@@ -1,12 +1,8 @@
 # telebot
-## Бот по игре Genshin Impact
+## Helper & Chat for Genshin Impact
 ---
 
-/farm - показывает доступные в определенный день таланты 
-
----
-
-фразы (реагирует на отправленные слова)
+/farm - shows availible talents for characters
 + morning
 + day
 + afternoon
@@ -14,3 +10,6 @@
 + night
 + troubles
 + birthday
+
+---
+you can type (almost any word) and get a message from your favourite character!
