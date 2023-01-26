@@ -1,5 +1,5 @@
 # telebot
-## Helper & Chat for Genshin Impact
+## Helper & Chat for Genshin Impact @genshin_ponponbot
 ---
 #### Helper
 /farm - shows availible talents for characters
