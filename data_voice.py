@@ -2,7 +2,6 @@ import requests
 import re
 import pandas as pd
 import os
-import emoji
 from random import randint
 from bs4 import BeautifulSoup as bp
 from requests.auth import HTTPBasicAuth
@@ -22,43 +21,46 @@ PASS = os.environ.get('PASS')
 # ---------------GETTING ALL THE AUDIO FILES -------------
 # get a audio file names (single url contain all links to a specific language)
 # depending on char name
-url = 'https://genshin-impact.fandom.com/wiki/File:VO_JA_Tighnari_Hello.ogg'
-
-# logging in to wiki with url
-response = requests.get(url, auth=HTTPDigestAuth(USER, PASS))
-soup = bp(response.text, 'html.parser')
-# creating a list of links
-links = []
-# regex pattern to use (probably can make it shorter but it works)
-pattern = '(https:+\/{2}\w+\.\w+\.\w+\.\w+\/.+[VO].+)'
-# getting all the links into a list
-for link in soup.find_all('a', attrs={'href': re.compile(pattern)}):
-    links.append(link.get('href'))
+def get_audio(character = 'Tighnari', lg = '_JA_'):
+    url = 'https://genshin-impact.fandom.com/wiki/File:VO' +lg+character.title()+'_Hello.ogg'
+    # logging in to wiki with url
+    response = requests.get(url, auth=HTTPDigestAuth(USER, PASS))
+    soup = bp(response.text, 'html.parser')
+    # creating a list of links
+    links = []
+    # regex pattern to use (probably can make it shorter but it works)
+    pattern = '(https:+\/{2}\w+\.\w+\.\w+\.\w+\/.+[VO].+)'
+    # getting all the links into a list
+    for link in soup.find_all('a', attrs={'href': re.compile(pattern)}):
+        links.append(link.get('href'))
+    return links
 
 # -------------GETTING SUBTITLES ---------------------
 #using pandas to get all the tables
-table = 'https://genshin-impact.fandom.com/wiki/Tighnari/Voice-Overs'
+def get_table_char(character = 'Tighnari'):
+    table = 'https://genshin-impact.fandom.com/wiki/'+character.title()+'/Voice-Overs'
 
-char = pd.read_html(table)
-# getting specific table with text without titles names and just audio subtitles
-df_char = char[2]
-df_char = df_char.dropna()
+    char = pd.read_html(table)
+    # getting specific table with text without titles names and just audio subtitles
+    df_char = char[2]
+    df_char = df_char.dropna()
 
-# setting a single column name (works better this way) 
-df = df_char.set_axis(['Title','Details'], axis=1)
+    # setting a single column name (works better this way) 
+    df = df_char.set_axis(['Title','Details'], axis=1)
 
-# replacing all useless text in the begining of every phrase (all of it end with ogg)
-# so using a regex again
-text = '[\s\S]*?(?:ogg)'
-df.replace(regex=True,inplace=True,to_replace=text,value=r'')
-df = df.reset_index(drop=True)
+    # replacing all useless text in the begining of every phrase (all of it end with ogg)
+    # so using a regex again
+    text = '[\s\S]*?(?:ogg)'
+    df.replace(regex=True,inplace=True,to_replace=text,value=r'')
+    df = df.reset_index(drop=True)
+    return df
 
-emoj_list = ['sunflower', 'sparkles', 'green_heart', 'parrot', 'herb', 'four_leaf_clover',  'leaf_fluttering_in_wind', 'seedling']
+emoj_list = ('💚 🦎 🦋 🐍 🌱 🌿 🍀 🍃 🌺 🌸').split()
 
 
 
-def get_msg(message):
-    emj = emoji.emojize(':' + emoj_list[randint(0,len(emoj_list)-1)] + ':')
+def get_msg(message, df, links):
+    emj = emoj_list[randint(0,len(emoj_list)-1)]
     filt = df["Title"].apply(lambda x: message.title() in x)
     if not any(filt):
         text ='Sorry, I don\'t understand you. Can you ask me about something else? \n'
