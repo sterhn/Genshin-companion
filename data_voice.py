@@ -1,21 +1,27 @@
 import requests
 import re
 import pandas as pd
+import os
+import emoji
+from random import randint
 from bs4 import BeautifulSoup as bp
 from requests.auth import HTTPBasicAuth
-import os
 from dotenv import load_dotenv
 from requests.auth import HTTPDigestAuth
+
 load_dotenv()
 
 # usr and pass to login (in an env file with bot token)
 USER = os.environ.get('USER')
 PASS = os.environ.get('PASS')
 
+# ---------------GETTING CHARACTER----------------
+# will update later
 
 
 # ---------------GETTING ALL THE AUDIO FILES -------------
 # get a audio file names (single url contain all links to a specific language)
+# depending on char name
 url = 'https://genshin-impact.fandom.com/wiki/File:VO_JA_Tighnari_Hello.ogg'
 
 # logging in to wiki with url
@@ -47,29 +53,34 @@ text = '[\s\S]*?(?:ogg)'
 df.replace(regex=True,inplace=True,to_replace=text,value=r'')
 df = df.reset_index(drop=True)
 
-print(df)
-indx = 0
-text = 'When'
-# audio links index corresponds to row index so you can get both link and subtitle
+emoj_list = ['sunflower', 'sparkles', 'green_heart', 'parrot', 'herb', 'four_leaf_clover',  'leaf_fluttering_in_wind', 'seedling']
 
-sub ='a'
- 
-# creating and passing series to new column
-filt = df["Title"].apply(lambda x: text in x)
-print(df['Details'].loc[df.index[filt]])
-index_value = df.index[filt].to_list()
-for i in index_value:
-    print(links[int(i)])
+
 
 def get_msg(message):
+    emj = emoji.emojize(':' + emoj_list[randint(0,len(emoj_list)-1)] + ':')
     filt = df["Title"].apply(lambda x: message.title() in x)
-    msg= df['Details'].loc[df.index[filt]]
-    index_value = df.index[filt].to_list()
-    audio = links[index_value[0]]
-    return(msg, audio)
+    if not any(filt):
+        text ='Sorry, I don\'t understand you. Can you ask me about something else? \n'
+        filt = df["Title"].apply(lambda x: 'Mistakes' in x)
+        msg= df['Details'].loc[df.index[filt]]
+        index_value = df.index[filt].to_list()
+        audio = links[index_value[0]]
+        return(text + msg, audio)
+    else:
+        msg= df['Details'].loc[df.index[filt]]
+        index_value = df.index[filt].to_list()
+        if len(index_value) >1:
+            res = df[filt].sample().index
+            msg= df['Details'].loc[df.index[res]] 
+            return(emj + msg, links[res.to_list()[0]])
+        
+        audio = links[index_value[0]]
+        return(emj + msg, audio)
 
-days = ['night', 'afternoon', 'morning', 'day']
-if 'morning' in days:
-    print(get_msg('morning'))
-else:
-    print(False)
+
+
+
+
+    
+
